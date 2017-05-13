@@ -4,11 +4,10 @@ import(
   "encoding/json"
   "fmt"
   "os"
+  "reflect"
 )
 
-// @TODO support streaming (io.Reader) encoders and decoders
-//       - did not find a method in go-yaml, only marshal/unmarshal
-
+// all config is unmarshalled into gokubi.Data
 type Data map[string]interface{}
 
 
@@ -28,13 +27,29 @@ func (d Data) Merge(m Data) error {
 // input - input automerges iself
 //
 
-func (d Data) Decode(input []byte) error {
-  return d.DecodeJSON(input)
+// @TODO support streaming (io.Reader) encoders and decoders
+//       - did not find a method in go-yaml, only marshal/unmarshal
+func (d Data) Decode(methodName string, body []byte) error {
+  method := reflect.ValueOf(d).MethodByName(methodName)
+  result := method.Call([]reflect.Value{reflect.ValueOf(body)})[0]
+  if result.IsNil(){
+      return nil
+    }
+  return result.Interface().(error)
 }
 
-func (d Data) DecodeJSON(input []byte) error {
+func (d Data) DecodeJSON(body []byte) error {
   var o Data
-  if err := json.Unmarshal(input, &o); err != nil {
+  if err := json.Unmarshal(body, &o); err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeJSON: %v", err)
+    return err
+  }
+  return d.Merge(o)
+}
+
+func (d Data) DecodeYML(body []byte) error {
+  var o Data
+  if err := json.Unmarshal(body, &o); err != nil {
     fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeJSON: %v", err)
     return err
   }
