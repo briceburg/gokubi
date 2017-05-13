@@ -1,0 +1,37 @@
+---
+
+genres:
+  jazz:
+    artists:
+      - "Thelonius Monk"
+      - "Sonny Rollins"
+  bluegrass:
+    artists:
+      - "Bill Monroe"
+      - "Lester Flatt"
+  folk:
+    artists:
+      - "Woody Guthrie"
+      - "Joan Baez"
+
+records:
+  -
+    name: on the beach
+    artist: neil young
+    year: 1974
+    rpm: 33
+    rating: 4.54
+    duration: 44:32
+
+sequence:
+  - [a, b, c]
+  - [aa,     bb,     cc]
+
+mappings:
+  hartford: {name: john, genres: ['bluegrass', folk]}
+  # comment: this out
+
+multiline:
+  value: >
+    line a
+    line b
