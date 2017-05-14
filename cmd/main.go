@@ -8,12 +8,19 @@ import(
 
 func main(){
   data := make(gokubi.Data)
+
+  /*
   if err := readers.FileReader("fixtures/music.xml", &data); err != nil {
     panic(err)
   }
   fmt.Println(data.String())
   fmt.Println(data.EncodeXML())
   fmt.Println(data.EncodeYML())
+  */
 
+  if err := readers.DirectoryReader("fixtures", &data); err != nil {
+    panic(err)
+  }
 
+  fmt.Println(data.String())
 }

@@ -32,47 +32,83 @@ func FileReader(p string, d *gokubi.Data) error {
     return d.Decode(method, body)
   }
 
-  return errors.New(fmt.Sprintf("gokubi/filesystem.FileReader: unsupported path: %v", p))
+  return fmt.Errorf("gokubi/filesystem.FileReader: unsupported path: %v", p)
 }
 
 // reads supported files in a directory in lexical order
-func DirectoryReader(p string, d gokubi.Data) error{
-  files, _ := ioutil.ReadDir("./")
-   for _, f := range files {
-           fmt.Println(f.Name())
-   }
-   return nil
+func DirectoryReader(p string, d *gokubi.Data) error{
+  return lexicalLoadFiles(p, false, d)
 }
 
 
 // reads supported files in a directory and its subdirectories in lexical order
-func RecursiveDirectoryReader(p string, d gokubi.Data) error{
-  filepath.Walk(p, walkFn)
-  return nil
+func RecursiveDirectoryReader(p string, d *gokubi.Data) error{
+  return lexicalLoadFiles(p, true, d)
 }
 
-
 // reads supported files in a directory concurrently (disregards order)
-func DirectoryReaderFast(p string, d gokubi.Data) error{
+func DirectoryReaderFast(p string, d *gokubi.Data) error{
   return errors.New("DirectoryReaderFast not implemented")
 }
 
 
 // reads supported in a directory and its subdirectories concurrently (disregards order)
-func RecursiveDirectoryReaderFast(p string, d gokubi.Data) error{
+func RecursiveDirectoryReaderFast(p string, d *gokubi.Data) error{
   return errors.New("RecursiveDirectoryReaderFast not implemented")
 }
 
-func walkFn(p string, info os.FileInfo, err error) error {
+
+func lexicalLoadFiles(dir string, recurse bool, d *gokubi.Data) error {
+  files, err := lexicalWalk(dir, recurse, onlyConfigFiles)
   if err != nil {
-    fmt.Fprintf(os.Stderr, "gokubi/filesystem.walkFn: failed on %s: %v", p, err)
-    return err
+    return fmt.Errorf("gokubi/filesystem.DirectoryReader: %v", err)
   }
 
-  if info.IsDir() {
+  for _, p := range files {
+    if err := FileReader(p, d); err != nil {
+      // @TODO continue execution on individual file errs?
+      return err
+    }
+  }
+
+  return nil
+}
+
+func lexicalWalk(pwd string, recurse bool, filterFn func(string, os.FileInfo) bool) ([]string, error) {
+  var list []string
+  stat, err := os.Stat(pwd)
+  if err != nil {
+    return list, err
+  }
+  if ! stat.IsDir() {
+    return list, fmt.Errorf("stat: %s: must be a directory", pwd)
+  }
+
+  walkFn := func(p string, stat os.FileInfo, err error) error {
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "gokubi/filesystem.walkFn: failed on %s: %v", p, err)
+      return err
+    }
+
+    if stat.IsDir() {
+      if recurse || p == pwd {
+        return nil
+      }
+      // halt recursion
+      return filepath.SkipDir
+    }
+
+    if filterFn(p, stat) {
+      list = append(list, p)
+    }
+
     return nil
   }
 
-  //ext := strings.ToLower(filepath.Ext(p))
-  return nil
+  return list, filepath.Walk(pwd, walkFn)
+}
+
+func onlyConfigFiles(p string, stat os.FileInfo) bool {
+  _, ok := ExtMethodMap[filepath.Ext(stat.Name())]
+  return ok
 }
