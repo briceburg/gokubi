@@ -26,6 +26,10 @@ records:
 sequence:
   - [a, b, c]
   - [aa,     bb,     cc]
+  -
+    - 1
+    - 2
+    - 77
 
 mappings:
   hartford: {name: john, genres: ['bluegrass', folk]}

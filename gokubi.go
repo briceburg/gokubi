@@ -5,6 +5,7 @@ import(
   "fmt"
   "os"
   "reflect"
+  "gopkg.in/yaml.v2"
 )
 
 // all config is unmarshalled into gokubi.Data
@@ -48,12 +49,16 @@ func (d Data) DecodeJSON(body []byte) error {
 }
 
 func (d Data) DecodeYML(body []byte) error {
-  var o Data
-  if err := json.Unmarshal(body, &o); err != nil {
-    fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeJSON: %v", err)
+  var o map[interface{}]interface{}
+  if err := yaml.Unmarshal(body, &o); err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeYML: %v", err)
     return err
   }
-  return d.Merge(o)
+
+  // YAML allows scalar and unmarshals to a map[interface{}]interface{} -
+  //   this is incompatible with the native map[string]interface{} type used by
+  //   natvive json methods, so we cast appropriately.
+  return d.Merge(InterfaceMapToStringMap(o))
 }
 
 
