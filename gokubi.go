@@ -2,6 +2,7 @@ package gokubi
 
 import(
   "encoding/json"
+  "github.com/clbanning/mxj/x2j"
   "fmt"
   "os"
   "reflect"
@@ -48,19 +49,28 @@ func (d Data) DecodeJSON(body []byte) error {
   return d.Merge(o)
 }
 
+
+func (d Data) DecodeXML(body []byte) error {
+  o, err := x2j.XmlToMap(body)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeXML: %v", err)
+    return err
+  }
+  return d.Merge(o)
+}
+
+
 func (d Data) DecodeYML(body []byte) error {
   var o map[interface{}]interface{}
   if err := yaml.Unmarshal(body, &o); err != nil {
     fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeYML: %v", err)
     return err
   }
-
   // YAML allows scalar and unmarshals to a map[interface{}]interface{} -
   //   this is incompatible with the native map[string]interface{} type used by
   //   natvive json methods, so we cast appropriately.
   return d.Merge(InterfaceMapToStringMap(o))
 }
-
 
 
 //
@@ -75,6 +85,24 @@ func (d Data) EncodeJSON() (string, error) {
   bytes, err := json.Marshal(d)
   if err != nil {
     fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeJSON: invalid json: %v", err)
+    return "", err
+  }
+  return string(bytes), nil
+}
+
+func (d Data) EncodeXML() (string, error) {
+  bytes, err := x2j.MapToXml(d)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeXML: invalid xml: %v", err)
+    return "", err
+  }
+  return string(bytes), nil
+}
+
+func (d Data) EncodeYML() (string, error) {
+  bytes, err := yaml.Marshal(d)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeYML: invalid yml: %v", err)
     return "", err
   }
   return string(bytes), nil

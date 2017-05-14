@@ -1,0 +1,45 @@
+<?xml version='1.0'?>
+<config>
+    <genres>
+        <jazz>
+            <artists>Thelonius Monk</artists>
+            <artists>Sonny Rollins</artists>
+        </jazz>
+        <bluegrass>
+            <artists>Bill Monroe</artists>
+            <artists>Lester Flatt</artists>
+        </bluegrass>
+        <folk>
+            <artists>Woody Guthrie</artists>
+            <artists>Joan Baez</artists>
+        </folk>
+    </genres>
+    <records>
+        <name>on the beach</name>
+        <artist>neil young</artist>
+        <year>1974</year>
+        <rpm>33</rpm>
+        <rating>4.54</rating>
+        <duration>44:32</duration>
+    </records>
+    <sequence>a</sequence>
+    <sequence>b</sequence>
+    <sequence>c</sequence>
+    <sequence>aa</sequence>
+    <sequence>bb</sequence>
+    <sequence>cc</sequence>
+    <sequence>1</sequence>
+    <sequence>2</sequence>
+    <sequence>77</sequence>
+    <mappings>
+        <hartford>
+            <name>john</name>
+            <genres>bluegrass</genres>
+            <genres>folk</genres>
+        </hartford>
+    </mappings>
+    <multiline>
+        <value>line a line b
+        </value>
+    </multiline>
+</config>
