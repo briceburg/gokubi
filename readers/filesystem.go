@@ -16,7 +16,8 @@ var ExtMethodMap = map[string]string{
   ".yaml": "DecodeYML",
   ".yml": "DecodeYML",
   ".html": "DecodeXML",
-  ".xml": "DecodeXML"}
+  ".xml": "DecodeXML",
+  ".hcl": "DecodeHCL"}
 
 
 func FileReader(p string, d *gokubi.Data) error {

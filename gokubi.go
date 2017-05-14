@@ -3,6 +3,7 @@ package gokubi
 import(
   "encoding/json"
   "github.com/clbanning/mxj/x2j"
+  "github.com/hashicorp/hcl"
   "fmt"
   "os"
   "reflect"
@@ -40,6 +41,15 @@ func (d Data) Decode(methodName string, body []byte) error {
   return result.Interface().(error)
 }
 
+func (d Data) DecodeHCL(body []byte) error {
+  var o Data
+  if err := hcl.Unmarshal(body, &o); err != nil {
+    fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeHCL: %v", err)
+    return err
+  }
+  return d.Merge(o)
+}
+
 func (d Data) DecodeJSON(body []byte) error {
   var o Data
   if err := json.Unmarshal(body, &o); err != nil {
@@ -48,7 +58,6 @@ func (d Data) DecodeJSON(body []byte) error {
   }
   return d.Merge(o)
 }
-
 
 func (d Data) DecodeXML(body []byte) error {
   o, err := x2j.XmlToMap(body)
