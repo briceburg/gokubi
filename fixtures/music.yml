@@ -39,3 +39,26 @@ multiline:
   value: >
     line a
     line b
+
+simpleArr:
+  - fox
+  - hound
+
+errol: garner
+number: 33
+
+complexString: >
+  start multiline string 'with' "quotes"
+  zzz end
+
+multiTypeArray:
+  - a
+  - b
+  - c
+  - aa bb cc
+  - start string 'with' "quotes" end
+  - 33
+  - 77.77
+  -
+    A: valA
+    B: valB
