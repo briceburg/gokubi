@@ -1,4 +1,4 @@
-package gokubi
+package yaml
 
 import (
 	"io/ioutil"
@@ -22,19 +22,5 @@ func BenchmarkInterfaceMapToStringMap(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		_ = InterfaceMapToStringMap(yamlMap)
-	}
-}
-
-func BenchmarkEnvMarshal(b *testing.B) {
-	data := make(Data)
-	if err := FileReader("fixtures/music.yml", &data); err != nil {
-		b.Skipf("BenchmarkEnvMarshal: failure: %v", err)
-	}
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		if _, err := EnvMarshal(data); err != nil {
-			b.Skipf("BenchmarkEnvMarshal: failure: %v", err)
-		}
 	}
 }

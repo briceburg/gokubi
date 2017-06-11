@@ -1,4 +1,4 @@
-package gokubi
+package bash
 
 import (
 	"bytes"
@@ -8,10 +8,9 @@ import (
 	"strings"
 )
 
-// EnvMarshal returns the shell environment var=value encoding of in map
-// flattens map values into JSON strings
-// values cotaining a basic type or an array of basic types are preserved.
-func EnvMarshal(in map[string]interface{}) ([]byte, error) {
+// Marshal returns a shell parsable representation (var=value encoding) of a map
+// arrays are preserved, and non literal values are serialized as JSON strings.
+func Marshal(in map[string]interface{}) ([]byte, error) {
 	var b bytes.Buffer
 	for k, v := range in {
 		v, err := jsonVal(v)
@@ -21,6 +20,10 @@ func EnvMarshal(in map[string]interface{}) ([]byte, error) {
 		}
 	}
 	return b.Bytes(), nil
+}
+
+func Unmarshal(data []byte, v interface{}) error {
+	return nil
 }
 
 func jsonVal(v interface{}) (string, error) {
@@ -66,36 +69,4 @@ func isNumeric(t reflect.Kind) bool {
 
 func isBasic(t reflect.Kind) bool {
 	return isNumeric(t) || t == reflect.String
-}
-
-/**
-safe functions inspired by https://github.com/elastic/beats/blob/6435194af9f42cbf778ca0a1a92276caf41a0da8/libbeat/common/mapstr.go#L117
-  (c)Elasticsearch, license: APL2
-**/
-
-func InterfaceMapToStringMap(in map[interface{}]interface{}) map[string]interface{} {
-	d := make(map[string]interface{})
-	for k, v := range in {
-		d[fmt.Sprintf("%v", k)] = safeValue(v)
-	}
-	return d
-}
-
-func safeArray(in []interface{}) []interface{} {
-	a := make([]interface{}, len(in))
-	for i, v := range in {
-		a[i] = safeValue(v)
-	}
-	return a
-}
-
-func safeValue(v interface{}) interface{} {
-	switch v := v.(type) {
-	case []interface{}:
-		return safeArray(v)
-	case map[interface{}]interface{}:
-		return InterfaceMapToStringMap(v)
-	default:
-		return v
-	}
 }

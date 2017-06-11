@@ -6,30 +6,40 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-// mapping of extension => gokubi method
-var ExtMethodMap = map[string]string{
-	".json": "DecodeJSON",
-	".yaml": "DecodeYML",
-	".yml":  "DecodeYML",
-	".html": "DecodeXML",
-	".xml":  "DecodeXML",
-	".hcl":  "DecodeHCL"}
+// mapping of extension => gokubi format
+var FormatExtensionsMap = map[string][]string{
+	"bash": {".vars", ".env", ".bash", ".sh"},
+	"json": {".json"},
+	"yaml": {".yaml", ".yml"},
+	"xml":  {".xml", ".html"},
+	"hcl":  {".hcl"},
+}
+
+func FormatFromPath(p string) (string, error) {
+	ext := strings.ToLower(filepath.Ext(p))
+	for f, list := range FormatExtensionsMap {
+		for _, v := range list {
+			if ext == v {
+				return f, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("gokubi/filesystem.MethodFromPath: failed on %v", ext)
+}
 
 func FileReader(p string, d *Data) error {
-	ext := filepath.Ext(p)
-	method, ok := ExtMethodMap[ext]
-	if ok {
-		body, err := ioutil.ReadFile(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "gokubi/filesystem.FileReader: %v", err)
-			return err
-		}
-		return d.Decode(method, body)
+	f, err := FormatFromPath(p)
+	if err != nil {
+		return fmt.Errorf("gokubi/filesystem.FileReader: unsupported path: %v", p)
 	}
-
-	return fmt.Errorf("gokubi/filesystem.FileReader: unsupported path: %v", p)
+	body, err := ioutil.ReadFile(p)
+	if err != nil {
+		return fmt.Errorf("gokubi/filesystem.FileReader: %v", err)
+	}
+	return d.Decode(body, f)
 }
 
 // reads supported files in a directory in lexical order
@@ -103,6 +113,6 @@ func lexicalWalk(pwd string, recurse bool, filterFn func(string, os.FileInfo) bo
 }
 
 func onlyConfigFiles(p string, stat os.FileInfo) bool {
-	_, ok := ExtMethodMap[filepath.Ext(stat.Name())]
-	return ok
+	_, err := FormatFromPath(stat.Name())
+	return err == nil
 }

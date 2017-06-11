@@ -1,22 +1,62 @@
 package gokubi
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"reflect"
 
-	"github.com/clbanning/mxj/x2j"
-	"github.com/hashicorp/hcl"
-	"gopkg.in/yaml.v2"
+	"github.com/briceburg/gokubi/formats/bash"
+	"github.com/briceburg/gokubi/formats/hcl"
+	"github.com/briceburg/gokubi/formats/json"
+	"github.com/briceburg/gokubi/formats/xml"
+	"github.com/briceburg/gokubi/formats/yaml"
 )
+
+// @TODO support streaming (io.Reader) encoders and decoders
 
 // all config is unmarshalled into gokubi.Data
 type Data map[string]interface{}
 
-//
-// mutators
-//
+func (d Data) Decode(body []byte, format string) error {
+	o := make(map[string]interface{})
+	var err error
+	switch format {
+	case "bash":
+		err = bash.Unmarshal(body, &o)
+	case "hcl":
+		err = hcl.Unmarshal(body, &o)
+	case "json":
+		err = json.Unmarshal(body, &o)
+	case "xml":
+		err = xml.Unmarshal(body, &o)
+	case "yaml":
+		err = yaml.Unmarshal(body, &o)
+	default:
+		err = fmt.Errorf("gokubi/Decode: unsupported decode format: %v", format)
+	}
+	if err == nil {
+		d.Merge(o)
+	}
+	return err
+}
+
+func (d Data) Encode(format string) (string, error) {
+	var bytes []byte
+	var err error
+	switch format {
+	case "bash":
+		bytes, err = bash.Marshal(d)
+	// case "hcl":
+	// 	bytes, err = hcl.Marshal(d)
+	case "json":
+		bytes, err = json.Marshal(d)
+	case "xml":
+		bytes, err = xml.Marshal(d)
+	case "yaml":
+		bytes, err = yaml.Marshal(d)
+	default:
+		err = fmt.Errorf("gokubi/Encode: unknown encode format: %v", format)
+	}
+	return string(bytes), err
+}
 
 func (d Data) Merge(m Data) error {
 	for k, v := range m {
@@ -25,100 +65,6 @@ func (d Data) Merge(m Data) error {
 	return nil
 }
 
-//
-// input - input automerges iself
-//
-
-// @TODO support streaming (io.Reader) encoders and decoders
-//       - did not find a method in go-yaml, only marshal/unmarshal
-func (d Data) Decode(methodName string, body []byte) error {
-	method := reflect.ValueOf(d).MethodByName(methodName)
-	result := method.Call([]reflect.Value{reflect.ValueOf(body)})[0]
-	if result.IsNil() {
-		return nil
-	}
-	return result.Interface().(error)
-}
-
-func (d Data) DecodeHCL(body []byte) error {
-	var o Data
-	if err := hcl.Unmarshal(body, &o); err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeHCL: %v", err)
-		return err
-	}
-	return d.Merge(o)
-}
-
-func (d Data) DecodeJSON(body []byte) error {
-	var o Data
-	if err := json.Unmarshal(body, &o); err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeJSON: %v", err)
-		return err
-	}
-	return d.Merge(o)
-}
-
-func (d Data) DecodeXML(body []byte) error {
-	o, err := x2j.XmlToMap(body)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeXML: %v", err)
-		return err
-	}
-	return d.Merge(o)
-}
-
-func (d Data) DecodeYML(body []byte) error {
-	var o map[interface{}]interface{}
-	if err := yaml.Unmarshal(body, &o); err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.DecodeYML: %v", err)
-		return err
-	}
-	// YAML allows scalar and unmarshals to a map[interface{}]interface{} -
-	//   this is incompatible with the native map[string]interface{} type used by
-	//   natvive json methods, so we cast appropriately.
-	return d.Merge(InterfaceMapToStringMap(o))
-}
-
-//
-// output
-//
-
 func (d Data) String() (string, error) {
-	return d.EncodeJSON()
-}
-
-func (d Data) EncodeENV() (string, error) {
-	bytes, err := EnvMarshal(d)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeENV: %v", err)
-		return "", err
-	}
-	return string(bytes), nil
-}
-
-func (d Data) EncodeJSON() (string, error) {
-	bytes, err := json.Marshal(d)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeJSON: %v", err)
-		return "", err
-	}
-	return string(bytes), nil
-}
-
-func (d Data) EncodeXML() (string, error) {
-	bytes, err := x2j.MapToXml(d)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeXML: %v", err)
-		return "", err
-	}
-	return string(bytes), nil
-}
-
-func (d Data) EncodeYML() (string, error) {
-	bytes, err := yaml.Marshal(d)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "gokubi/Data.EncodeYML: %v", err)
-		return "", err
-	}
-	return string(bytes), nil
+	return d.Encode("json")
 }

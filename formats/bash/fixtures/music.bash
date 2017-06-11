@@ -1,0 +1,10 @@
+genres="{\"bluegrass\":{\"artists\":[\"Bill Monroe\",\"Lester Flatt\"]},\"folk\":{\"artists\":[\"Woody Guthrie\",\"Joan Baez\"]},\"jazz\":{\"artists\":[\"Thelonius Monk\",\"Sonny Rollins\"]}}"
+simpleArr=( "fox" "hound" )
+sequence=( ( "a" "b" "c" ) ( "aa" "bb" "cc" ) ( 1 2 77 ) )
+multiTypeArray=( "a" "b" "c" "aa bb cc" "start string 'with' \"quotes\" end" 33 77.77 "{\"A\":\"valA\",\"B\":\"valB\"}" )
+mappings="{\"hartford\":{\"genres\":[\"bluegrass\",\"folk\"],\"name\":\"john\"}}"
+multiline="{\"value\":\"line a line b\\n\"}"
+complexString="start multiline string 'with' \"quotes\" zzz end\n"
+records=( "{\"artist\":\"neil young\",\"duration\":\"44:32\",\"name\":\"on the beach\",\"rating\":4.54,\"rpm\":33,\"year\":1974}" )
+number=33
+errol="garner"
