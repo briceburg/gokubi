@@ -1,14 +1,9 @@
 package bash
 
-import (
-	"testing"
-
-	"github.com/briceburg/gokubi/readers"
-)
-
+/*
 func BenchmarkMarshal(b *testing.B) {
 	data := make(map[string]interface{})
-	if err := readers.FileReader("fixtures/music.yml", &data); err != nil {
+	if err := gokubi.FileReader("fixtures/music.yml", &data); err != nil {
 		b.Skipf("BenchmarMarshal: failure: %v", err)
 	}
 	b.ResetTimer()
@@ -19,3 +14,4 @@ func BenchmarkMarshal(b *testing.B) {
 		}
 	}
 }
+*/

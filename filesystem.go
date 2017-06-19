@@ -39,7 +39,21 @@ func FileReader(p string, d *Data) error {
 	if err != nil {
 		return fmt.Errorf("gokubi/filesystem.FileReader: %v", err)
 	}
-	return d.Decode(body, f)
+
+	switch f {
+	case "bash":
+		return d.DecodeBash(body)
+	case "hcl":
+		return d.DecodeHCL(body)
+	case "json":
+		return d.DecodeJSON(body)
+	case "xml":
+		return d.DecodeXML(body)
+	case "yaml":
+		return d.DecodeYAML(body)
+	default:
+		return fmt.Errorf("gokubi/Decode: unsupported decode format: %v", f)
+	}
 }
 
 // reads supported files in a directory in lexical order

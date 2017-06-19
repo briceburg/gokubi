@@ -1,8 +1,6 @@
 package gokubi
 
 import (
-	"fmt"
-
 	"github.com/briceburg/gokubi/formats/bash"
 	"github.com/briceburg/gokubi/formats/hcl"
 	"github.com/briceburg/gokubi/formats/json"
@@ -12,59 +10,64 @@ import (
 
 // @TODO support streaming (io.Reader) encoders and decoders
 
-// all config is unmarshalled into gokubi.Data
+// config is unmarshalled into gokubi.Data
 type Data map[string]interface{}
 
-func (d Data) Decode(body []byte, format string) error {
-	o := make(map[string]interface{})
-	var err error
-	switch format {
-	case "bash":
-		err = bash.Unmarshal(body, &o)
-	case "hcl":
-		err = hcl.Unmarshal(body, &o)
-	case "json":
-		err = json.Unmarshal(body, &o)
-	case "xml":
-		err = xml.Unmarshal(body, &o)
-	case "yaml":
-		err = yaml.Unmarshal(body, &o)
-	default:
-		err = fmt.Errorf("gokubi/Decode: unsupported decode format: %v", format)
-	}
-	if err == nil {
-		d.Merge(o)
-	}
-	return err
+//
+// Decoding
+//
+
+func (d *Data) DecodeBash(body []byte) error {
+	return bash.Unmarshal(body, d)
 }
 
-func (d Data) Encode(format string) (string, error) {
-	var bytes []byte
-	var err error
-	switch format {
-	case "bash":
-		bytes, err = bash.Marshal(d)
-	// case "hcl":
-	// 	bytes, err = hcl.Marshal(d)
-	case "json":
-		bytes, err = json.Marshal(d)
-	case "xml":
-		bytes, err = xml.Marshal(d)
-	case "yaml":
-		bytes, err = yaml.Marshal(d)
-	default:
-		err = fmt.Errorf("gokubi/Encode: unknown encode format: %v", format)
-	}
-	return string(bytes), err
+func (d *Data) DecodeHCL(body []byte) error {
+	return hcl.Unmarshal(body, d)
 }
 
-func (d Data) Merge(m Data) error {
-	for k, v := range m {
-		d[k] = v
-	}
-	return nil
+func (d *Data) DecodeJSON(body []byte) error {
+	return json.Unmarshal(body, d)
 }
 
-func (d Data) String() (string, error) {
-	return d.Encode("json")
+func (d *Data) DecodeXML(body []byte) error {
+	return xml.Unmarshal(body, d)
+}
+
+func (d *Data) DecodeYAML(body []byte) error {
+	return yaml.Unmarshal(body, d)
+}
+
+//
+// Encoding
+//
+
+func (d Data) EncodeBash() ([]byte, error) {
+	return bash.Marshal(d)
+}
+
+/*
+func (d Data) EncodeHCL() ([]byte, error) {
+	return hcl.Marshal(d)
+}
+*/
+
+func (d Data) EncodeJSON() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+func (d Data) EncodeXML() ([]byte, error) {
+	return xml.Marshal(d)
+}
+
+func (d Data) EncodeYAML() ([]byte, error) {
+	return yaml.Marshal(d)
+}
+
+//
+// Rendering
+//
+
+func (d Data) String() string {
+	bytes, _ := d.EncodeJSON()
+	return string(bytes)
 }

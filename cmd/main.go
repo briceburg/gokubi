@@ -9,11 +9,16 @@ import (
 func main() {
 	data := make(gokubi.Data)
 
-	if err := gokubi.FileReader("formats/xml/fixtures/music.xml", &data); err != nil {
+	if err := gokubi.FileReader("formats/json/fixtures/music.json", &data); err != nil {
+		panic(err)
+	}
+	if err := gokubi.FileReader("formats/yaml/fixtures/music.yml", &data); err != nil {
 		panic(err)
 	}
 	fmt.Println(data.String())
-	//fmt.Println(data.EncodeXML())
+
+	out, _ := data.EncodeYAML()
+	fmt.Println(string(out))
 	//fmt.Println(data.EncodeBash())
 
 	/*

@@ -4,42 +4,34 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/briceburg/gokubi/util"
 	"github.com/clbanning/mxj/x2j"
 )
-
-// An InvalidUnmarshalError describes an invalid argument passed to Unmarshal.
-// (The argument to Unmarshal must be a non-nil pointer.)
-type InvalidUnmarshalError struct {
-	Type reflect.Type
-}
-
-func (e *InvalidUnmarshalError) Error() string {
-	if e.Type == nil {
-		return "gokubi/xml: Unmarshal(nil)"
-	}
-	if e.Type.Kind() != reflect.Ptr {
-		return "gokubi/xml: Unmarshal(non-pointer " + e.Type.String() + ")"
-	}
-	return "gokubi/xml: Unmarshal(nil " + e.Type.String() + ")"
-}
 
 func Marshal(in map[string]interface{}) ([]byte, error) {
 	return x2j.MapToXml(in)
 }
 
-func Unmarshal(data []byte, v *map[string]interface{}) error {
+// Unmarshal parses the XML-encoded data and stores result in value pointed to by v.
+// v must be a pointer to gokubi.Data or map[string]interface{}
+func Unmarshal(data []byte, v interface{}) error {
 	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Ptr || rv.IsNil() {
-		return &InvalidUnmarshalError{reflect.TypeOf(v)}
+
+	// validate target
+	if !util.IsValidUnmarshalPtr(rv) {
+		return fmt.Errorf("gokubi/xml: cannot unmarshal into %s, must be *map[string]interface{}", rv.Type())
 	}
 
+	// unmarshal xml
 	o, err := x2j.XmlToMap(data)
 	if err != nil {
 		return err
 	}
 
-	for k, vv := range o {
-		(*v)[fmt.Sprintf("%v", k)] = vv
+	// update target
+	t := rv.Elem()
+	for key, val := range o {
+		t.SetMapIndex(reflect.ValueOf(fmt.Sprintf("%v", key)), reflect.ValueOf(val))
 	}
 
 	return nil
