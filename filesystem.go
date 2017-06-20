@@ -18,6 +18,7 @@ var FormatExtensionsMap = map[string][]string{
 	"hcl":  {".hcl"},
 }
 
+// given a path, attempts to find a suitable format using the filename extension
 func FormatFromPath(p string) (string, error) {
 	ext := strings.ToLower(filepath.Ext(p))
 	for f, list := range FormatExtensionsMap {

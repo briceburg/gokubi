@@ -1,10 +1,15 @@
 # gokubi
 
-gokubi is a cli tool and Go library that sources disparate configuration and
-outputs either a rendered template or the merged configuration in a unified format.
+gokubi merges configuration and either renders a template or prints the result.
 
 the name '_gokubi_' is an homage to the real-time language translating device
 imagined by ![Kurt Vonnegut](docs/vonnegut.jpeg) in [Galapogos](https://en.wikipedia.org/wiki/Gal%C3%A1pagos_(novel)).
+
+## usage
+
+### cli
+
+### as a Go library
 
 
 ## supported formats
@@ -24,6 +29,7 @@ format | extension(s) | input | output
 
 
 > **<sup>1</sup>** maps are serialized as JSON strings in shell output. see examples
+
 
 
 ## supported templates

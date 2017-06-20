@@ -13,6 +13,9 @@ import (
 // config is unmarshalled into gokubi.Data
 type Data map[string]interface{}
 
+var OutputFormats = []string{"bash", "json", "xml", "yaml"}
+var InputFormats = []string{"bash", "hcl", "json", "xml", "yaml"}
+
 //
 // Decoding
 //
