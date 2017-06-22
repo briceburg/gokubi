@@ -18,6 +18,15 @@ var FormatExtensionsMap = map[string][]string{
 	"hcl":  {".hcl"},
 }
 
+func (d *Data) LoadPaths(paths []string) error {
+	for _, p := range paths {
+		if err := PathReader(p, d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // given a path, attempts to find a suitable format using the filename extension
 func FormatFromPath(p string) (string, error) {
 	ext := strings.ToLower(filepath.Ext(p))
@@ -31,30 +40,28 @@ func FormatFromPath(p string) (string, error) {
 	return "", fmt.Errorf("gokubi/filesystem.MethodFromPath: failed on %v", ext)
 }
 
+func PathReader(p string, d *Data) error {
+	stat, err := os.Stat(p)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		return DirectoryReader(p, d)
+	}
+	return FileReader(p, d)
+}
+
 func FileReader(p string, d *Data) error {
 	f, err := FormatFromPath(p)
 	if err != nil {
 		return fmt.Errorf("gokubi/filesystem.FileReader: unsupported path: %v", p)
 	}
-	body, err := ioutil.ReadFile(p)
+	bytes, err := ioutil.ReadFile(p)
 	if err != nil {
 		return fmt.Errorf("gokubi/filesystem.FileReader: %v", err)
 	}
 
-	switch f {
-	case "bash":
-		return d.DecodeBash(body)
-	case "hcl":
-		return d.DecodeHCL(body)
-	case "json":
-		return d.DecodeJSON(body)
-	case "xml":
-		return d.DecodeXML(body)
-	case "yaml":
-		return d.DecodeYAML(body)
-	default:
-		return fmt.Errorf("gokubi/Decode: unsupported decode format: %v", f)
-	}
+	return d.Decode(bytes, f)
 }
 
 // reads supported files in a directory in lexical order

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -15,7 +16,7 @@ var action func()
 var exitCode int = 1
 var usageTemplate = `gokubi merges configuration and either renders a template or prints the result
 
-Usage: {{.Cmd}} [options] [--] [paths...]
+Usage: {{.Cmd}} <options> [--] [paths...]
 
 Examples:
   # merge configuration from xml, yml, and .properties files and output as JSON
@@ -38,6 +39,8 @@ var templatePath string
 
 ///
 
+var data gokubi.Data
+
 func main() {
 
 	flag.StringVar(&inputFormat, "i", "json", "Input `format` (used when configuration is passed as stdin). Supported Values: "+strings.Join(gokubi.InputFormats, ", "))
@@ -51,6 +54,11 @@ func main() {
 		flag.Usage()
 		die("please specify an output format or template to render")
 	}
+
+	if err := loadData(); err != nil {
+		panic(err)
+	}
+
 	action()
 }
 
@@ -66,6 +74,7 @@ func init() {
 		t.Execute(os.Stderr, ctx)
 		flag.PrintDefaults()
 	}
+	data = make(gokubi.Data)
 }
 
 // determines command path based on a passed flag. last "command" flag wins.
@@ -78,14 +87,31 @@ func setAction(flag *flag.Flag) {
 	}
 }
 
-///
-
 func die(msg string) {
 	if msg == "" {
 		msg = "bailing out"
 	}
 	fmt.Fprintf(os.Stderr, "\n⚡⚡\n⚡ %s \n⚡⚡\n", msg)
 	os.Exit(exitCode)
+}
+
+///
+
+func loadData() error {
+	err := data.LoadPaths(flag.Args())
+	if err == nil && isStdin() {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		if err == nil {
+			return data.Decode(bytes, inputFormat)
+		}
+	}
+	return err
+}
+
+func isStdin() bool {
+	stat, _ := os.Stdin.Stat()
+	mode := stat.Mode()
+	return (mode & os.ModeNamedPipe) != 0
 }
 
 func output() {

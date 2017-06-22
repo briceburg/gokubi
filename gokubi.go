@@ -1,6 +1,8 @@
 package gokubi
 
 import (
+	"fmt"
+
 	"github.com/briceburg/gokubi/formats/bash"
 	"github.com/briceburg/gokubi/formats/hcl"
 	"github.com/briceburg/gokubi/formats/json"
@@ -19,6 +21,23 @@ var InputFormats = []string{"bash", "hcl", "json", "xml", "yaml"}
 //
 // Decoding
 //
+
+func (d *Data) Decode(body []byte, f string) error {
+	switch f {
+	case "bash":
+		return d.DecodeBash(body)
+	case "hcl":
+		return d.DecodeHCL(body)
+	case "json":
+		return d.DecodeJSON(body)
+	case "xml":
+		return d.DecodeXML(body)
+	case "yaml":
+		return d.DecodeYAML(body)
+	default:
+		return fmt.Errorf("gokubi/Decode: unsupported decode format: %v", f)
+	}
+}
 
 func (d *Data) DecodeBash(body []byte) error {
 	return bash.Unmarshal(body, d)
