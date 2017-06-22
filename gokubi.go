@@ -30,9 +30,9 @@ func (d *Data) Decode(body []byte, f string) error {
 		return d.DecodeHCL(body)
 	case "json":
 		return d.DecodeJSON(body)
-	case "xml":
+	case "xml", "html":
 		return d.DecodeXML(body)
-	case "yaml":
+	case "yaml", "yml":
 		return d.DecodeYAML(body)
 	default:
 		return fmt.Errorf("gokubi/Decode: unsupported decode format: %v", f)
@@ -62,6 +62,23 @@ func (d *Data) DecodeYAML(body []byte) error {
 //
 // Encoding
 //
+
+func (d Data) Encode(f string) ([]byte, error) {
+	switch f {
+	case "bash":
+		return d.EncodeBash()
+	//case "hcl":
+	//	return d.DecodeHCL()
+	case "json":
+		return d.EncodeJSON()
+	case "xml", "html":
+		return d.EncodeXML()
+	case "yaml", "yml":
+		return d.EncodeYAML()
+	default:
+		return nil, fmt.Errorf("gokubi/Encode: unsupported encode format: %v", f)
+	}
+}
 
 func (d Data) EncodeBash() ([]byte, error) {
 	return bash.Marshal(d)

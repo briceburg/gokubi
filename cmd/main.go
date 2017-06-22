@@ -115,37 +115,11 @@ func isStdin() bool {
 }
 
 func output() {
-	fmt.Println("OUT!")
-	/*
-		fmt.Println(*inputFormat)
-		fmt.Println(*outputFormat)
-		fmt.Println(*template)
-		fmt.Println(*templatePath)
-		/*
-
-			data := make(gokubi.Data)
-
-			if err := gokubi.FileReader("formats/json/fixtures/music.json", &data); err != nil {
-				panic(err)
-			}
-			if err := gokubi.FileReader("formats/yaml/fixtures/music.yml", &data); err != nil {
-				panic(err)
-			}
-			fmt.Println(data.String())
-
-			out, _ := data.EncodeYAML()
-			fmt.Println(string(out))
-
-	*/
-	//fmt.Println(data.EncodeBash())
-
-	/*
-		if err := readers.DirectoryReader("fixtures", &data); err != nil {
-			panic(err)
-		}
-		fmt.Println(data.String())
-		fmt.Println("%+v", data)
-	*/
+	bytes, err := data.Encode(outputFormat)
+	if err != nil {
+		die(fmt.Sprintf("failed encoding: %s ", err.Error()))
+	}
+	os.Stdout.Write(bytes)
 }
 
 func render() {
