@@ -8,6 +8,7 @@ import (
 	"github.com/briceburg/gokubi/formats/json"
 	"github.com/briceburg/gokubi/formats/xml"
 	"github.com/briceburg/gokubi/formats/yaml"
+	"github.com/peterbourgon/mergemap"
 )
 
 // @TODO support streaming (io.Reader) encoders and decoders
@@ -40,23 +41,34 @@ func (d *Data) Decode(body []byte, f string) error {
 }
 
 func (d *Data) DecodeBash(body []byte) error {
-	return bash.Unmarshal(body, d)
+	return d.merge(bash.Unmarshal, body)
 }
 
 func (d *Data) DecodeHCL(body []byte) error {
-	return hcl.Unmarshal(body, d)
+	return d.merge(hcl.Unmarshal, body)
 }
 
 func (d *Data) DecodeJSON(body []byte) error {
-	return json.Unmarshal(body, d)
+	return d.merge(json.Unmarshal, body)
 }
 
 func (d *Data) DecodeXML(body []byte) error {
-	return xml.Unmarshal(body, d)
+	return d.merge(xml.Unmarshal, body)
 }
 
 func (d *Data) DecodeYAML(body []byte) error {
-	return yaml.Unmarshal(body, d)
+	return d.merge(yaml.Unmarshal, body)
+}
+
+// Recursively merge configuration, descending into maps on key conflicts.
+func (d *Data) merge(fn func([]byte, interface{}) error, body []byte) error {
+	src := make(map[string]interface{})
+	if err := fn(body, &src); err != nil {
+		return err
+	}
+	dst := Data(mergemap.Merge(map[string]interface{}(*d), src))
+	d = &dst
+	return nil
 }
 
 //
